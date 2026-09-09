@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: CI/CD Vue
 
 on:
   push:
@@ -6,8 +6,8 @@ on:
       - main
 
 jobs:
-  docker:
-    runs-on: ubuntu-latest
+  build-and-deploy:
+    runs-on: self-hosted
 
     steps:
       - name: Checkout source
@@ -22,9 +22,23 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            -t ${{ secrets.DOCKER_USERNAME }}/vue-project:latest \
+            -t khanhly123/vue-project:latest \
             .
 
       - name: Push Docker image
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/vue-project:latest
+          docker push khanhly123/vue-project:latest
+
+      - name: Deploy
+        run: |
+          docker pull khanhly123/vue-project:latest
+
+          docker rm -f vue-project || true
+
+          docker run -d \
+            --name vue-project \
+            --restart unless-stopped \
+            -p 8080:80 \
+            khanhly123/vue-project:latest
+
+          docker ps
